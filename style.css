@@ -32,7 +32,7 @@ h1{
   .cell {
     width: 100px;
     height: 100px;
-    color: #69140E;
+    color: white;
     background-color: #000000;
     display: flex;
     align-items: center;

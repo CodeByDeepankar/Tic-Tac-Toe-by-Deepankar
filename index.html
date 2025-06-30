@@ -3,46 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tic Tac Toe</title>
+  <title>Professional Tic Tac Toe | CodeByDeepankar</title>
   <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-  <h1>Tic Tac Toe</h1>
-  <div id="status">Player X's turn</div>
-  <div id="board">
-    <div class="cell" onclick="handleClick(0)" ></div>
-    <div class="cell" onclick="handleClick(1)"></div>
-    <div class="cell" onclick="handleClick(2)"></div>
-    <div class="cell" onclick="handleClick(3)"></div>
-    <div class="cell" onclick="handleClick(4)"></div>
-    <div class="cell" onclick="handleClick(5)"></div>
-    <div class="cell" onclick="handleClick(6)"></div>
-    <div class="cell" onclick="handleClick(7)"></div>
-    <div class="cell" onclick="handleClick(8)"></div>
+  <!-- Background Animation -->
+  <div class="background-animation">
+    <div class="floating-shape shape-1"></div>
+    <div class="floating-shape shape-2"></div>
+    <div class="floating-shape shape-3"></div>
+    <div class="floating-shape shape-4"></div>
   </div>
-  
-<button onclick="reset(), changeBackgroundColorBody()" class="button">
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    viewBox="0 0 20 20"
-    height="20"
-    fill="none"
-    class="svg-icon"
-  >
-    <g stroke-width="1.5" stroke-linecap="round" stroke="#ff342b">
-      <path
-        d="m3.33337 10.8333c0 3.6819 2.98477 6.6667 6.66663 6.6667 3.682 0 6.6667-2.9848 6.6667-6.6667 0-3.68188-2.9847-6.66664-6.6667-6.66664-1.29938 0-2.51191.37174-3.5371 1.01468"
-      ></path>
-      <path
-        d="m7.69867 1.58163-1.44987 3.28435c-.18587.42104.00478.91303.42582 1.0989l3.28438 1.44986"
-      ></path>
-    </g>
-  </svg>
-  <span class="lable">Reset</span>
-</button>
 
-  <div class="foot">Made by <span>Deepankar</span></div>
-  <script src="script.js"></script>
-</body>
-</html>
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Header Section -->
+    <header class="game-header">
+      <div class="logo-section">
+        <i class="fas fa-gamepad game-icon"></i>
+        <h1 class="game-title">Professional Tic Tac Toe</h1>
+      </div>
+      <div class="score-board">
+        <div class="score-item">
+          <span class="player-label">Player X</span>
+          <span class="score" id="scoreX">0</span>
+        </div>
+        <div class="score-divider">:</div>
+        <div class="score-item">
+          <span class="player-label">Player O</span>
+          <span class="score" id="scoreO">0</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Game Status -->
+    <div class="status-container">
+      <div id="status" class="game-status">Player X's turn</div>
+      <div class="turn-indicator">
+        <div class="player-turn active" id="turnX">X</div>
+        <div class="player-turn" id="turnO">O</div>
+      </div>
+    </div>

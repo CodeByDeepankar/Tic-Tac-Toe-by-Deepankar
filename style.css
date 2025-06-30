@@ -1,102 +1,103 @@
-*{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Courier New', Courier, monospace;
+/* Professional Tic Tac Toe - Enhanced Styling */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-body{
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background-color: #F2F3AE;
-    height: 100vh;
-    width: 100vw;
+:root {
+  --primary-color: #667eea;
+  --secondary-color: #764ba2;
+  --accent-color: #f093fb;
+  --success-color: #4ecdc4;
+  --warning-color: #ffe66d;
+  --danger-color: #ff6b6b;
+  --dark-color: #2c3e50;
+  --light-color: #ecf0f1;
+  --text-color: #2c3e50;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  --border-radius: 15px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-h1{
-    color: #3C1518;
-}
-
-
-
-#board {
-    display: grid;
-    grid-template-columns: repeat(3, 100px);
-    grid-template-rows: repeat(3, 100px);
-    gap: 2px;
-    margin-bottom: 20px;
-  }
-  
-  .cell {
-    width: 100px;
-    height: 100px;
-    color: white;
-    background-color: #000000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 40px;
-    border-radius: 1rem;
-    border: 1px solid #69140E;
-    box-shadow: 0px 0px 0px 1px rgb(0 0 0 / 20%);
-    cursor: pointer;
-  }
-  
-  #status {
-    margin-bottom: 10px;
-  }
-  
-  
-.button {
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  min-height: 100vh;
   display: flex;
-  justify-content: center;
   align-items: center;
-  padding: 6px 12px;
-  gap: 8px;
-  height: 34px;
-  width: 112px;
-  border: none;
-  background: #ff362b34;
-  border-radius: 20px;
-  cursor: pointer;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+  overflow-x: hidden;
 }
 
-.lable {
-  line-height: 20px;
-  font-size: 17px;
-  color: #ff342b;
-  letter-spacing: 1px;
+/* Background Animation */
+.background-animation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
 }
 
-.button:hover {
-  background: #ff362b52;
+.floating-shape {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
 }
 
-.button:hover .svg-icon {
-  animation: spin 2s linear infinite;
+.shape-1 {
+  width: 80px;
+  height: 80px;
+  top: 20%;
+  left: 10%;
+  animation: float 6s ease-in-out infinite;
 }
 
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(-360deg);
-  }
+.shape-2 {
+  width: 120px;
+  height: 120px;
+  top: 60%;
+  right: 15%;
+  animation: float 8s ease-in-out infinite reverse;
 }
 
+.shape-3 {
+  width: 60px;
+  height: 60px;
+  top: 80%;
+  left: 20%;
+  animation: float 10s ease-in-out infinite;
+}
 
-  .foot{
-    margin-top: 1.5rem;
-    color: #69140E;
-  }
+.shape-4 {
+  width: 100px;
+  height: 100px;
+  top: 10%;
+  right: 25%;
+  animation: float 7s ease-in-out infinite reverse;
+}
 
-  .foot span{
-    font-weight: bold;
-    color: #851810;
-  }
- 
-  
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+/* Main Container */
+.container {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: var(--border-radius);
+  padding: 30px;
+  box-shadow: var(--shadow);
+  max-width: 500px;
+  width: 100%;
+  animation: slideIn 0.8s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;

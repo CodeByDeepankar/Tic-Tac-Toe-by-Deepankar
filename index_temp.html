@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Professional Tic Tac Toe | CodeByDeepankar</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+  <!-- Background Animation -->
+  <div class="background-animation">
+    <div class="floating-shape shape-1"></div>
+    <div class="floating-shape shape-2"></div>
+    <div class="floating-shape shape-3"></div>
+    <div class="floating-shape shape-4"></div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Header Section -->
+    <header class="game-header">
+      <div class="logo-section">
+        <i class="fas fa-gamepad game-icon"></i>
+        <h1 class="game-title">Professional Tic Tac Toe</h1>
+      </div>
+      <div class="score-board">
+        <div class="score-item">
+          <span class="player-label">Player X</span>
+          <span class="score" id="scoreX">0</span>
+        </div>
+        <div class="score-divider">:</div>
+        <div class="score-item">
+          <span class="player-label">Player O</span>
+          <span class="score" id="scoreO">0</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Game Status -->
+    <div class="status-container">
+      <div id="status" class="game-status">Player X's turn</div>
+      <div class="turn-indicator">
+        <div class="player-turn active" id="turnX">X</div>
+        <div class="player-turn" id="turnO">O</div>
+      </div>
+    </div>
+
+    <!-- Game Board -->
+    <div class="game-board-container">
+      <div id="board" class="game-board">
+        <div class="cell" onclick="handleClick(0)" data-index="0">
+          <div class="cell-content"></div>
+        </div>
+        <div class="cell" onclick="handleClick(1)" data-index="1">
+          <div class="cell-content"></div>
+        </div>
+        <div class="cell" onclick="handleClick(2)" data-index="2">
+          <div class="cell-content"></div>
+        </div>
+        <div class="cell" onclick="handleClick(3)" data-index="3">
+          <div class="cell-content"></div>
+        </div>
+        <div class="cell" onclick="handleClick(4)" data-index="4">
+          <div class="cell-content"></div>
+        </div>
+        <div class="cell" onclick="handleClick(5)" data-index="5">
+          <div class="cell-content"></div>
+        </div>
+        <div class="cell" onclick="handleClick(6)" data-index="6">
+          <div class="cell-content"></div>
+        </div>
+        <div class="cell" onclick="handleClick(7)" data-index="7">
+          <div class="cell-content"></div>
+        </div>
+        <div class="cell" onclick="handleClick(8)" data-index="8">
+          <div class="cell-content"></div>
+        </div>
+      </div>
+      <div class="winning-line" id="winningLine"></div>
+    </div>
+
+    <!-- Game Controls -->
+    <div class="game-controls">
+      <button onclick="reset()" class="control-btn reset-btn">
+        <i class="fas fa-redo-alt"></i>
+        <span>New Game</span>
+      </button>
+      <button onclick="changeTheme()" class="control-btn theme-btn">
+        <i class="fas fa-palette"></i>
+        <span>Change Theme</span>
+      </button>
+    </div>
+
+    <!-- Game Stats -->
+    <div class="game-stats">
+      <div class="stat-item">
+        <span class="stat-label">Games Played</span>
+        <span class="stat-value" id="gamesPlayed">0</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Draws</span>
+        <span class="stat-value" id="draws">0</span>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="game-footer">
+      <div class="developer-info">
+        <span>Crafted with</span>
+        <i class="fas fa-heart heart-icon"></i>
+        <span>by <strong>Deepankar Sahoo</strong></span>
+      </div>
+      <div class="social-links">
+        <a href="https://github.com/CodeByDeepankar" target="_blank" class="social-link">
+          <i class="fab fa-github"></i>
+        </a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Victory Modal -->
+  <div id="victoryModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <i class="fas fa-trophy trophy-icon"></i>
+        <h2 id="modalTitle">Congratulations!</h2>
+      </div>
+      <div class="modal-body">
+        <p id="modalMessage">Player X Wins!</p>
+        <div class="confetti"></div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="closeModal()" class="modal-btn secondary">Close</button>
+        <button onclick="playAgain()" class="modal-btn primary">Play Again</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

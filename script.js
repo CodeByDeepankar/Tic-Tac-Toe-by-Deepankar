@@ -1,4 +1,4 @@
-// Professional Tic Tac Toe - Enhanced JavaScript
+// Professional Tic Tac Toe - Enhanced JavaScript with Multiplayer Support
 class TicTacToe {
   constructor() {
     this.currentPlayer = 'X';
@@ -8,6 +8,8 @@ class TicTacToe {
     this.gamesPlayed = 0;
     this.currentTheme = 'default';
     this.themes = ['default', 'dark-theme', 'neon-theme'];
+    this.isMultiplayer = false;
+    this.isSpectator = false;
     
     this.winningCombinations = [
       [0, 1, 2], [3, 4, 5], [6, 7, 8],
@@ -40,6 +42,23 @@ class TicTacToe {
   handleClick(index) {
     if (!this.gameActive || this.board[index] !== '') return;
     
+    // Check if this is a multiplayer game
+    if (this.isMultiplayer) {
+      if (this.isSpectator) return; // Spectators can't make moves
+      
+      // Let multiplayer manager handle the move
+      if (window.multiplayerManager) {
+        const success = window.multiplayerManager.makeMove(index);
+        if (!success) return; // Invalid move in multiplayer
+      }
+      return; // Don't process locally in multiplayer
+    }
+    
+    // Single player logic
+    this.makeLocalMove(index);
+  }
+  
+  makeLocalMove(index) {
     this.board[index] = this.currentPlayer;
     this.animateMove(index);
     
@@ -106,20 +125,24 @@ class TicTacToe {
   
   handleGameEnd(result) {
     this.gameActive = false;
-    this.gamesPlayed++;
     
-    if (result === 'draw') {
-      this.scores.draws++;
-      this.updateStatus('It\'s a draw! 🤝');
-      this.showModal('It\'s a Draw!', 'Great game! Try again?');
-    } else {
-      this.scores[result]++;
-      this.updateStatus(`Player ${result} wins! 🎉`);
-      this.showModal('Congratulations!', `Player ${result} wins!`);
+    // Only update scores in single player mode
+    if (!this.isMultiplayer) {
+      this.gamesPlayed++;
+      
+      if (result === 'draw') {
+        this.scores.draws++;
+        this.updateStatus('It\'s a draw! 🤝');
+        this.showModal('It\'s a Draw!', 'Great game! Try again?');
+      } else {
+        this.scores[result]++;
+        this.updateStatus(`Player ${result} wins! 🎉`);
+        this.showModal('Congratulations!', `Player ${result} wins!`);
+      }
+      
+      this.updateScoreDisplay();
+      this.saveGameData();
     }
-    
-    this.updateScoreDisplay();
-    this.saveGameData();
   }
   
   switchPlayer() {
@@ -176,6 +199,17 @@ class TicTacToe {
   }
   
   reset() {
+    // In multiplayer, delegate to multiplayer manager
+    if (this.isMultiplayer && window.multiplayerManager) {
+      window.multiplayerManager.resetGame();
+      return;
+    }
+    
+    // Single player reset
+    this.resetLocal();
+  }
+  
+  resetLocal() {
     this.currentPlayer = 'X';
     this.board = ['', '', '', '', '', '', '', '', ''];
     this.gameActive = true;
@@ -233,6 +267,58 @@ class TicTacToe {
       }
     }
   }
+  
+  // Multiplayer specific methods
+  switchToMultiplayer() {
+    this.isMultiplayer = true;
+    this.isSpectator = false;
+    this.resetLocal();
+    this.updateStatus('Multiplayer mode - Waiting for game to start...');
+  }
+  
+  switchToSpectatorMode() {
+    this.isMultiplayer = true;
+    this.isSpectator = true;
+    this.resetLocal();
+    this.updateStatus('Spectator mode - Watching the game...');
+  }
+  
+  switchToSinglePlayer() {
+    this.isMultiplayer = false;
+    this.isSpectator = false;
+    this.resetLocal();
+    this.updateStatus('Single player mode');
+  }
+  
+  updateBoardFromServer(serverBoard) {
+    this.board = [...serverBoard];
+    
+    // Update UI
+    const cells = document.getElementsByClassName('cell');
+    Array.from(cells).forEach((cell, index) => {
+      const cellContent = cell.querySelector('.cell-content');
+      const value = this.board[index];
+      
+      if (value) {
+        cell.setAttribute('data-player', value);
+        cellContent.textContent = value;
+      } else {
+        cell.removeAttribute('data-player');
+        cellContent.textContent = '';
+        cell.style.background = '';
+        cell.style.color = '';
+        cell.style.transform = '';
+      }
+    });
+    
+    // Check for winner and highlight
+    const winner = this.checkWinner();
+    if (winner) {
+      this.gameActive = false;
+    } else {
+      this.gameActive = true;
+    }
+  }
 }
 
 // Initialize the game
@@ -241,6 +327,8 @@ let game;
 // Wait for DOM to load
 document.addEventListener('DOMContentLoaded', () => {
   game = new TicTacToe();
+  // Make game globally accessible
+  window.game = game;
 });
 
 // Global functions for HTML onclick events
@@ -252,39 +340,14 @@ function reset() {
   if (game) game.reset();
 }
 
-function changeTheme() {
-  if (game) game.changeTheme();
+function playAgain() {
+  if (game) game.playAgain();
 }
 
 function closeModal() {
   if (game) game.closeModal();
 }
 
-function playAgain() {
-  if (game) game.playAgain();
-}
-
-// Add ripple animation CSS
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes ripple {
-    to {
-      transform: scale(4);
-      opacity: 0;
-    }
-  }
-`;
-document.head.appendChild(style);
-
-// Add keyboard instructions
-console.log('🎮 Keyboard Controls:');
-console.log('• Use keys 1-9 to place moves');
-console.log('• Press R to reset the game');
-console.log('• Enjoy the enhanced Tic Tac Toe experience!');
-
-// Legacy function for backward compatibility
-function changeBackgroundColorBody() {
-  // This function is kept for backward compatibility
-  // The new theme system handles background changes
+function changeTheme() {
   if (game) game.changeTheme();
 }

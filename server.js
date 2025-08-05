@@ -5,8 +5,8 @@ const fs = require('fs');
 
 // Create HTTP server for serving static files
 const server = http.createServer((req, res) => {
-  let filePath = '.' + req.url;
-  if (filePath === './') filePath = './index.html';
+  // Serve files from public directory
+  let filePath = path.join(__dirname, 'public', req.url === '/' ? 'index.html' : req.url);
   
   const extname = String(path.extname(filePath)).toLowerCase();
   const mimeTypes = {
@@ -340,6 +340,8 @@ function generateRoomId() {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`WebSocket server is ready for connections`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📁 Serving files from public directory`);
+  console.log(`🌐 Open http://localhost:${PORT} to play`);
+  console.log(`🎮 WebSocket server ready for multiplayer connections`);
 });

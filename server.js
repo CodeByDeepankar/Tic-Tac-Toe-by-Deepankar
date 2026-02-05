@@ -5,8 +5,8 @@ const fs = require('fs');
 
 // Create HTTP server for serving static files
 const server = http.createServer((req, res) => {
-  // Serve files from public directory
-  let filePath = path.join(__dirname, 'public', req.url === '/' ? 'index.html' : req.url);
+  // Serve files from root directory (not public)
+  let filePath = path.join(__dirname, req.url === '/' ? 'index.html' : req.url);
   
   const extname = String(path.extname(filePath)).toLowerCase();
   const mimeTypes = {
@@ -46,7 +46,14 @@ const server = http.createServer((req, res) => {
 });
 
 // Create WebSocket server
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocket.Server({ noServer: true });
+
+// Handle upgrade requests to establish WebSocket connections
+server.on('upgrade', (request, socket, head) => {
+  wss.handleUpgrade(request, socket, head, (ws) => {
+    wss.emit('connection', ws, request);
+  });
+});
 
 // Game rooms storage
 const gameRooms = new Map();

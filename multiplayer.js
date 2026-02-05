@@ -147,25 +147,45 @@ class MultiplayerManager {
   connectToServer() {
     if (this.isConnected) return;
     
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}`;
+    // Determine the WebSocket URL based on the current page context
+    let wsUrl;
+    if (typeof window !== 'undefined') {
+      // Client-side: construct URL from current location
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      // Use the current host, or default to localhost:3000 if developing locally
+      const host = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        ? 'localhost:3000' 
+        : window.location.host;
+      wsUrl = `${protocol}//${host}`;
+    } else {
+      // Server-side or testing environment: default to localhost
+      wsUrl = 'ws://localhost:3000';
+    }
     
     try {
+      console.log('Attempting to connect to:', wsUrl);
       this.ws = new WebSocket(wsUrl);
       
       this.ws.onopen = () => {
+        console.log('WebSocket connection opened');
         this.isConnected = true;
         this.updateConnectionStatus('Connected', 'connected');
       };
       
       this.ws.onmessage = (event) => {
+        console.log('Received message:', event.data);
         this.handleMessage(JSON.parse(event.data));
       };
       
       this.ws.onclose = () => {
+        console.log('WebSocket connection closed');
         this.isConnected = false;
         this.updateConnectionStatus('Disconnected', 'disconnected');
-        setTimeout(() => this.connectToServer(), 3000); // Auto-reconnect
+        // Attempt to reconnect after delay
+        setTimeout(() => {
+          console.log('Attempting to reconnect...');
+          this.connectToServer();
+        }, 3000);
       };
       
       this.ws.onerror = (error) => {
@@ -174,7 +194,7 @@ class MultiplayerManager {
       };
       
     } catch (error) {
-      console.error('Failed to connect:', error);
+      console.error('Failed to connect to WebSocket:', error);
       this.updateConnectionStatus('Connection Failed', 'error');
     }
   }

@@ -65,7 +65,9 @@ class GameRoom {
     this.board = ['', '', '', '', '', '', '', '', ''];
     this.currentPlayer = 'X';
     this.gameActive = false;
+    this.gameStarted = false; // Track if game has been explicitly started
     this.spectators = [];
+    this.waitingForPlayers = true; // Flag to indicate waiting for 2nd player
   }
 
   addPlayer(ws, playerName) {
@@ -78,12 +80,21 @@ class GameRoom {
       };
       this.players.push(player);
       
+      // Notify all players about the current room state
+      this.broadcastToRoom({
+        type: 'playerJoined',
+        players: this.players.map(p => ({ name: p.name, symbol: p.symbol, id: p.id })),
+        playerCount: this.players.length,
+        roomInfo: this.getRoomInfo()
+      });
+      
+      // If both players joined, notify that we're ready to start
       if (this.players.length === 2) {
-        this.gameActive = true;
+        this.waitingForPlayers = false;
         this.broadcastToRoom({
-          type: 'gameStart',
-          players: this.players.map(p => ({ name: p.name, symbol: p.symbol })),
-          currentPlayer: this.currentPlayer
+          type: 'readyToStart',
+          message: 'Both players joined! Host can start the game.',
+          players: this.players.map(p => ({ name: p.name, symbol: p.symbol, id: p.id }))
         });
       }
       
@@ -99,45 +110,128 @@ class GameRoom {
       id: Date.now() + Math.random()
     };
     this.spectators.push(spectator);
+    
+    // Send current game state to the new spectator
+    spectator.ws.send(JSON.stringify({
+      type: 'joinedAsSpectator',
+      roomInfo: this.getRoomInfo(),
+      board: this.board,
+      currentPlayer: this.currentPlayer,
+      gameActive: this.gameActive,
+      gameStarted: this.gameStarted
+    }));
+    
     return spectator;
   }
 
+  startGame(hostWs) {
+    // Verify that the request comes from the host (first player)
+    const hostPlayer = this.players[0];
+    if (!hostPlayer || hostPlayer.ws !== hostWs) {
+      hostWs.send(JSON.stringify({ type: 'error', message: 'Only the host can start the game' }));
+      return false;
+    }
+    
+    if (this.players.length !== 2) {
+      hostWs.send(JSON.stringify({ type: 'error', message: 'Need 2 players to start the game' }));
+      return false;
+    }
+    
+    this.gameActive = true;
+    this.gameStarted = true;
+    this.currentPlayer = 'X'; // Always start with X
+    
+    this.broadcastToRoom({
+      type: 'gameStart',
+      players: this.players.map(p => ({ name: p.name, symbol: p.symbol, id: p.id })),
+      currentPlayer: this.currentPlayer,
+      message: 'Game started!'
+    });
+    
+    return true;
+  }
+
   removePlayer(ws) {
+    const leavingPlayerIndex = this.players.findIndex(p => p.ws === ws);
+    const leavingPlayer = this.players[leavingPlayerIndex];
+    
+    // Remove player from the list
     this.players = this.players.filter(p => p.ws !== ws);
     this.spectators = this.spectators.filter(s => s.ws !== ws);
     
-    if (this.players.length < 2) {
-      this.gameActive = false;
+    // If game was active and a player left, end the game for remaining player
+    if (this.gameActive && leavingPlayer) {
       this.broadcastToRoom({
         type: 'playerDisconnected',
-        message: 'A player disconnected. Waiting for new players...'
+        message: `${leavingPlayer.name} left the game.`,
+        disconnectedPlayer: leavingPlayer.name,
+        remainingPlayers: this.players.map(p => ({ name: p.name, symbol: p.symbol }))
+      });
+      
+      // Reset the game state
+      this.resetGameState();
+    } else if (this.players.length < 2) {
+      // If game hadn't started yet and a player left
+      this.waitingForPlayers = true;
+      this.gameStarted = false;
+      this.gameActive = false;
+      
+      this.broadcastToRoom({
+        type: 'waitingForPlayers',
+        message: leavingPlayer ? `${leavingPlayer.name} left. Waiting for another player...` : 'Waiting for players...',
+        playerCount: this.players.length,
+        players: this.players.map(p => ({ name: p.name, symbol: p.symbol }))
       });
     }
   }
+  
+  resetGameState() {
+    this.board = ['', '', '', '', '', '', '', '', ''];
+    this.currentPlayer = 'X';
+    this.gameActive = false;
+    this.gameStarted = false;
+    this.waitingForPlayers = this.players.length < 2;
+  }
 
   makeMove(playerWs, index) {
-    if (!this.gameActive) return false;
+    // Check if the game is active
+    if (!this.gameActive) {
+      return false;
+    }
     
+    // Find the player making the move
     const player = this.players.find(p => p.ws === playerWs);
-    if (!player || player.symbol !== this.currentPlayer) return false;
     
-    if (this.board[index] !== '') return false;
+    // Validate the player and their turn
+    if (!player) return false;
+    if (player.symbol !== this.currentPlayer) {
+      return false; // Not this player's turn
+    }
     
+    // Check if the cell is already occupied
+    if (this.board[index] !== '') {
+      return false; // Cell already taken
+    }
+    
+    // Make the move
     this.board[index] = this.currentPlayer;
     
+    // Check for winner or draw
     const winner = this.checkWinner();
     const isDraw = this.board.every(cell => cell !== '');
     
     if (winner || isDraw) {
+      // Game ends
       this.gameActive = false;
       this.broadcastToRoom({
         type: 'gameEnd',
         board: this.board,
         winner: winner,
         isDraw: isDraw && !winner,
-        winnerName: winner ? player.name : null
+        winnerName: winner ? this.players.find(p => p.symbol === winner)?.name : null
       });
     } else {
+      // Switch to the other player's turn
       this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
       this.broadcastToRoom({
         type: 'move',
@@ -227,6 +321,10 @@ wss.on('connection', (ws) => {
           handleGetRooms(ws);
           break;
           
+        case 'startGame':
+          handleStartGame(ws, data);
+          break;
+          
         default:
           ws.send(JSON.stringify({ type: 'error', message: 'Unknown message type' }));
       }
@@ -295,6 +393,18 @@ function handleCreateRoom(ws, data) {
   }));
 }
 
+function handleStartGame(ws, data) {
+  const { roomId } = data;
+  
+  if (!gameRooms.has(roomId)) {
+    ws.send(JSON.stringify({ type: 'error', message: 'Room not found' }));
+    return;
+  }
+  
+  const room = gameRooms.get(roomId);
+  room.startGame(ws); // Pass the websocket to verify it's the host
+}
+
 function handleMakeMove(ws, data) {
   const { roomId, index } = data;
   
@@ -304,6 +414,13 @@ function handleMakeMove(ws, data) {
   }
   
   const room = gameRooms.get(roomId);
+  
+  // Check if game is active before allowing moves
+  if (!room.gameActive) {
+    ws.send(JSON.stringify({ type: 'error', message: 'Game not started yet' }));
+    return;
+  }
+  
   const success = room.makeMove(ws, index);
   
   if (!success) {

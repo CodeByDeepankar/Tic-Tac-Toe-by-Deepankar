@@ -404,6 +404,19 @@
   border-color: #ffd700;
 }
 
+.start-game-btn {
+  background: linear-gradient(45deg, #2ed573, #1dd1a1) !important;
+  border-color: rgba(46, 213, 115, 0.3) !important;
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+.start-game-btn:hover {
+  background: linear-gradient(45deg, #1dd1a1, #2ed573) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 5px 15px rgba(46, 213, 115, 0.4) !important;
+}
+
 /* Multiplayer Button in Main Controls */
 .multiplayer-btn {
   background: linear-gradient(45deg, #667eea, #764ba2) !important;

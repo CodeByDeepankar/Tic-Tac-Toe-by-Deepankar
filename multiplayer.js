@@ -219,6 +219,12 @@ class MultiplayerManager {
       case 'joinedAsSpectator':
         this.handleJoinedAsSpectator(data);
         break;
+      case 'playerJoined':
+        this.handlePlayerJoined(data);
+        break;
+      case 'readyToStart':
+        this.handleReadyToStart(data);
+        break;
       case 'gameStart':
         this.handleGameStart(data);
         break;
@@ -233,6 +239,9 @@ class MultiplayerManager {
         break;
       case 'playerDisconnected':
         this.handlePlayerDisconnected(data);
+        break;
+      case 'waitingForPlayers':
+        this.handleWaitingForPlayers(data);
         break;
       case 'roomsList':
         this.handleRoomsList(data);
@@ -303,6 +312,79 @@ class MultiplayerManager {
     this.isSpectator = false;
     this.showGameRoom(data.roomInfo);
     this.game.switchToMultiplayer();
+  }
+  
+  handlePlayerJoined(data) {
+    // Update the room display when a player joins
+    this.updateRoomPlayers(data);
+    
+    // If we're the host and waiting for a second player, update status
+    if (this.playerInfo && this.playerInfo.symbol === 'X' && data.playerCount === 2) {
+      this.game.updateStatus('Second player joined! Click Start Game to begin.');
+    } else if (data.playerCount < 2) {
+      this.game.updateStatus('Waiting for another player...');
+    }
+  }
+  
+  handleReadyToStart(data) {
+    // Show the start game button if this player is the host (X)
+    if (this.playerInfo && this.playerInfo.symbol === 'X') {
+      this.showStartGameButton();
+      this.game.updateStatus('Both players joined! Click Start Game to begin.');
+    } else {
+      this.game.updateStatus('Waiting for host to start the game...');
+    }
+    
+    // Update player display
+    this.updateRoomPlayers({ players: data.players, spectators: [] });
+  }
+  
+  handleWaitingForPlayers(data) {
+    this.game.updateStatus(data.message || 'Waiting for players...');
+    
+    // Update player display to show current players
+    this.updateRoomPlayers({
+      players: data.players || [],
+      spectators: []
+    });
+    
+    // Hide start game button if it was shown
+    this.hideStartGameButton();
+  }
+  
+  showStartGameButton() {
+    // Create or show the start game button
+    let startButton = document.getElementById('startGameBtn');
+    if (!startButton) {
+      const roomControls = document.querySelector('.room-controls');
+      startButton = document.createElement('button');
+      startButton.id = 'startGameBtn';
+      startButton.className = 'control-btn start-game-btn';
+      startButton.innerHTML = `
+        <i class="fas fa-play"></i>
+        <span>Start Game</span>
+      `;
+      startButton.onclick = () => this.startGame();
+      roomControls.appendChild(startButton);
+    } else {
+      startButton.style.display = 'flex';
+    }
+  }
+  
+  hideStartGameButton() {
+    const startButton = document.getElementById('startGameBtn');
+    if (startButton) {
+      startButton.style.display = 'none';
+    }
+  }
+  
+  startGame() {
+    if (this.currentRoom && this.playerInfo && this.playerInfo.symbol === 'X') {
+      this.sendMessage({
+        type: 'startGame',
+        roomId: this.currentRoom
+      });
+    }
   }
   
   handleJoinedAsSpectator(data) {
